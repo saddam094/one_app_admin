@@ -1,40 +1,69 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import axios from 'axios';
+import { toast } from 'react-toastify';
 
 // icons
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { FaUpload } from "react-icons/fa";
+import { X } from "lucide-react";
 
 const Ecom_add_shop = () => {
+
+
+    const notify = (message) => toast.success(message);
+    const notifyError = (message) => toast.error(message);
 
     const initialformData = {
         adminEmail: '',
         shopDetails: {
             ownerName: '',
-            email: '',
-            phone: '',
+            ownerEmail: '',
+            ownerPhone: '',
             category: '',
-            gst: '',
+            subCategory: [],
+            gstNo: '',
             shopName: '',
             address: '',
-            shopStatus: "true"
-        },
-        accountDetail: {
-            fullName: '',
-            bankName: '',
-            branch: '',
-            ifscCode: '',
-            accountNo: '',
-            reAccountNo: ''
+            shopStatus: true
         },
         documents: {
             aadhar: '',
-            passbook: '',
-            panCard: ''
+            shopBannerimage: '',
+            shopOwnerImage: ''
         }
     };
 
     const [formData, setFormData] = useState(initialformData);
+
+    const [subCategories, setSubCategories] = useState([]);
+    const [title, setTitle] = useState("");
+    const [image, setImage] = useState(null);
+
+    const handleImageChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setImage(reader.result);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
+    const handleAddSubCategory = () => {
+        if (title && image) {
+            setSubCategories([...subCategories, { title, image }]);
+            setTitle("");
+            setImage(null);
+        }
+    };
+
+    const removeSubCategory = (index) => {
+        const updatedList = subCategories.filter((_, i) => i !== index);
+        setSubCategories(updatedList);
+    };
+
 
     // Handle input change for dynamic fields
     const handleChange = (e, section) => {
@@ -66,40 +95,215 @@ const Ecom_add_shop = () => {
 
     // Function to clear the form
     const handleClear = () => {
-        setFormData(initialformData); 
+        setFormData(initialformData);
     };
 
     // Handle Submit
-    const handleSubmit = () => {
-        console.log('======================================')
-        console.log(formData)
-        console.log('======================================')
+    const handleSubmit = async () => {
+
+        // Shop Details ---> Validation
+        if (formData.shopDetails.ownerName === '' || formData.shopDetails.ownerEmail === '' || formData.shopDetails.ownerPhone === '' || formData.shopDetails.gstNo === '' || formData.shopDetails.shopName === '' || formData.shopDetails.address === '') {
+            notifyError('Shop Details All Fields Are Required');
+            return;
+        }
+
+        // Sub-category ---> Validation
+        if (subCategories.length === 0) {
+            notifyError('Please Add Sub-categories');
+            return;
+        }
+
+        // Documents ---> Validation
+        if (!formData.documents.aadhar || !formData.documents.shopBannerimage) {
+            notifyError('Please Attach Adhar and Banner Image');
+            return;
+        }
+
+        const adminEmail = localStorage.getItem('adminEmail');
+
+        await uploadProcess();
+
+        var data = {
+            adminEmail: adminEmail,
+            shopStatus: true,
+            shopDetails: {
+                ownerName: formData.shopDetails.ownerName,
+                ownerEmail: formData.shopDetails.ownerEmail,
+                ownerPhone: formData.shopDetails.ownerPhone,
+                category: formData.shopDetails.category,
+                shopBannerimage: formData.documents.shopBannerimage,
+                subCategory: subCategories,
+                gstNo: formData.shopDetails.gstNo,
+                shopName: formData.shopDetails.shopName,
+                address: formData.shopDetails.address,
+                shopStatus: formData.shopDetails.shopStatus
+            },
+            aadhar: formData.documents.aadhar,
+            shopOwnerImage: formData.documents.shopOwnerImage
+        };
+
+        try {
+            const response = await axios.post('https://r2fjv162gj.execute-api.ap-south-1.amazonaws.com/prod/ecommerce_shops', data);
+
+            console.log('Response:', response.data);
+
+            if (response.data['body-json']['statusCode'] === 200) {
+                notify("Shop Added Successfully");
+            } else if (response.data['body-json']['statusCode'] === 400) {
+                notifyError(response.data['body-json'].body.message);
+            } else {
+                console.log(`api response${response.data['body-json']['statusCode']}`)
+            }
+
+        } catch (error) {
+            console.error('Error submitting data:', error.response ? error.response.data : error.message);
+        }
+
     };
+
+
+
+    // API endpoint to get pre-signed URLs
+
+
+    /**
+     * Step 1: Get Pre-Signed URLs by making a POST request.
+     */
+    const getPresignedUrls = async (sCategoryTitle) => {
+
+        var data = {
+            "documents": [
+                formData.documents.aadhar.name,
+                formData.documents.shopBannerimage.name,
+                formData.documents.shopOwnerImage.name
+            ],
+            "subCategoryImages": sCategoryTitle
+        }
+
+        console.log(data);
+
+        try {
+            const response = await axios.post('https://r2fjv162gj.execute-api.ap-south-1.amazonaws.com/prod/ecommerce_shop_image_presigned', data);
+
+            console.log(response);
+
+            if (response.data['body-json'].body?.signedUrls) {
+                console.log("✅ Pre-signed URLs fetched successfully!");
+                return response.data['body-json'].body;  // Extract URLs
+            } else {
+                throw new Error("Pre-signed URLs not found in response.");
+            }
+        } catch (error) {
+            console.error("❌ Error fetching pre-signed URLs:", error.message);
+            return [];
+        }
+    };
+
+    /**
+     * Step 2: Upload images using the pre-signed URLs (PUT request).
+     */
+
+
+    const uploadImages = async (signedUrls, fileList) => {
+        try {
+            const files = Object.values(fileList).filter(file => file); // Get only non-null files
+
+            const uploadPromises = files.map(async (file, index) => {
+                if (!signedUrls[index]) {
+                    console.error(`⚠️ No URL for ${file.name}`);
+                    return;
+                }
+
+                try {
+                    const uploadResponse = await axios.put(signedUrls[index], file, {
+                        headers: {
+                            'Content-Type': file.type // Ensure correct MIME type (e.g., image/png, application/pdf)
+                        },
+                        transformRequest: [(data, headers) => {
+                            // Axios sometimes modifies data; this ensures raw binary is sent
+                            return data;
+                        }]
+                    });
+
+                    if (uploadResponse.status === 200) {
+                        console.log(`✅ Uploaded ${file.name} successfully!`);
+
+                    } else {
+                        console.log(`⚠️ Upload failed for ${file.name}, Status: ${uploadResponse.status}`);
+                    }
+                } catch (error) {
+                    console.error(`❌ Error uploading ${file.name}:`, error.message);
+                }
+            });
+
+            await Promise.all(uploadPromises);
+            console.log('✅ All uploads completed!');
+
+        } catch (error) {
+            console.error('❌ Error uploading images:', error.message);
+        }
+    };
+
+
+    /**
+     * Execute the steps in order.
+     */
+    const uploadProcess = async () => {
+
+        const sCategoryImage = [];
+        const sCategoryImageName = [];
+
+        subCategories.forEach((item) => {
+            sCategoryImage.push(item.image);
+        });
+
+        subCategories.forEach((item) => {
+            sCategoryImageName.push(item.image.name);
+        });
+
+        const body = await getPresignedUrls(sCategoryImageName);
+
+
+        if (body.signedUrls.documents.length > 0 && body.signedUrls.subCategoryImages.length > 0) {
+            await uploadImages(body.signedUrls.documents, [formData.documents.aadhar, formData.documents.shopBannerimage]);
+
+            formData.documents.aadhar = body.uploadedFiles.documents[0].key;
+            formData.documents.shopBannerimage = body.uploadedFiles.documents[1].key;
+            formData.documents.shopOwnerImage = body.uploadedFiles.documents[2].key;
+            console.log('documents completed');
+
+            await uploadImages(body.signedUrls.subCategoryImages, sCategoryImage);
+
+            subCategories.forEach((item, index) => {
+                console.log(index);
+                subCategories[index].image = body.uploadedFiles.subCategoryImages[index].key;
+            });
+
+            console.log('sub category completed');
+
+        } else {
+            console.error("❌ No signed URLs received. Aborting upload.");
+        }
+    };
+
+
+
 
     // Define dynamic field configurations
     const shopDetailsFields = [
         { name: 'ownerName', placeholder: 'Owner Name' },
-        { name: 'email', placeholder: 'Email' },
-        { name: 'phone', placeholder: 'Phone' },
+        { name: 'ownerEmail', placeholder: 'Email' },
+        { name: 'ownerPhone', placeholder: 'Phone' },
         { name: 'category', placeholder: 'Category' },
-        { name: 'gst', placeholder: 'GST Number' },
+        { name: 'gstNo', placeholder: 'GST Number' },
         { name: 'shopName', placeholder: 'Shop Name' },
         { name: 'address', placeholder: 'Address', type: 'textarea' },
     ];
 
-    const accountDetailFields = [
-        { name: 'fullName', placeholder: 'Full Name' },
-        { name: 'bankName', placeholder: 'Bank Name' },
-        { name: 'branch', placeholder: 'Branch' },
-        { name: 'ifscCode', placeholder: 'IFSC Code' },
-        { name: 'accountNo', placeholder: 'Account Number' },
-        { name: 'reAccountNo', placeholder: 'Re-Account Number' },
-    ];
-
     const documentFields = [
         { name: 'aadhar', label: 'Aadhar Card' },
-        { name: 'passbook', label: 'Passbook' },
-        { name: 'panCard', label: 'Pan Card' },
+        { name: 'shopOwnerImage', label: 'Owner Image' },
+        { name: 'shopBannerimage', label: 'Shop Banner Image' }
     ];
 
     return (
@@ -123,7 +327,7 @@ const Ecom_add_shop = () => {
                                 name={field.name}
                                 value={formData.shopDetails[field.name]}
                                 onChange={(e) => handleChange(e, 'shopDetails')}
-                                rows="2"
+                                rows="1"
                                 className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500"
                             />
                         ) : (
@@ -141,22 +345,45 @@ const Ecom_add_shop = () => {
                 </form>
             </div>
 
-            {/* Account Details */}
-            <h1 className="text-lg font-serif">Account Details</h1>
+            {/* Sub Categories */}
+            <h1 className="text-lg font-serif">Sub Categories</h1>
             <div className="w-full bg-white p-4 rounded-lg shadow">
-                <form className="grid grid-cols-1 md:grid-cols-3 gap-x-16 gap-y-2">
-                    {accountDetailFields.map((field) => (
-                        <input
-                            key={field.name}
-                            type="text"
-                            name={field.name}
-                            placeholder={field.placeholder}
-                            value={formData.accountDetail[field.name]}
-                            onChange={(e) => handleChange(e, 'accountDetail')}
-                            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500"
-                        />
+                <div className="flex gap-x-16 gap-y-2">
+                    <input
+                        type="text"
+                        placeholder="Sub Category Name"
+                        value={title}
+                        onChange={(e) => setTitle(e.target.value)}
+                        className="border p-2 w-full rounded-md"
+                    />
+                    <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageChange}
+                        className="border p-2 w-full rounded-md"
+                    />
+                    {/* {image && <img src={image} alt="Preview" className="w-20 h-20 mt-2" />} */}
+                    <button
+                        onClick={handleAddSubCategory}
+                        className="bg-blue-500 text-white rounded-md w-full "
+                    >
+                        Add
+                    </button>
+                </div>
+                <div className="flex flex-row flex-wrap gap-x-5 gap-y-2">
+                    {subCategories.map((sub, index) => (
+                        <div key={index} className="relative border p-2 flex flex-col items-center">
+                            {/* Cross Icon for Delete */}
+                            <X
+                                className="absolute top-1 right-1 cursor-pointer text-red-500 hover:text-red-700"
+                                size={16}
+                                onClick={() => removeSubCategory(index)}
+                            />
+                            <p>{sub.title}</p>
+                            <img src={sub.image} alt={sub.title} className="w-20 h-20 mt-2" />
+                        </div>
                     ))}
-                </form>
+                </div>
             </div>
 
             {/* Document Uploads */}
@@ -208,7 +435,7 @@ const Ecom_add_shop = () => {
                     Submit
                 </button>
             </div>
-        </div>
+        </div >
     );
 };
 
