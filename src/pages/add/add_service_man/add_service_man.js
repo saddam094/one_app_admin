@@ -20,6 +20,7 @@ const Add_service_man = () => {
             name: '',
             email: '',
             phone: '',
+            fee: '',
             storeName: '',
             address: '',
         },
@@ -124,6 +125,7 @@ const Add_service_man = () => {
                 name: formData.serviceManInfo.name,
                 email: formData.serviceManInfo.email,
                 phone: formData.serviceManInfo.phone,
+                fee: formData.serviceManInfo.fee,
                 storeName: formData.serviceManInfo.storeName,
                 address: formData.serviceManInfo.address,
             },
@@ -135,6 +137,7 @@ const Add_service_man = () => {
             timeList: selectedTime
         };
 
+        console.log('Add Service Man Data', data);
 
         try {
             const response = await axios.post('https://r2fjv162gj.execute-api.ap-south-1.amazonaws.com/prod/add_serviceman', data);
@@ -264,6 +267,7 @@ const Add_service_man = () => {
         { name: 'name', placeholder: 'name' },
         { name: 'phone', placeholder: 'Phone' },
         { name: 'email', placeholder: 'Email' },
+        { name: 'fee', placeholder: 'Fee' },
         { name: 'storeName', placeholder: 'Store Name' },
         { name: 'address', placeholder: 'Address', type: 'textarea' },
     ];

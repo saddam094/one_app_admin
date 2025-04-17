@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
 import axios from 'axios';
-import RemoveRedEyeIcon from '@mui/icons-material/RemoveRedEye';
+import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
-import MoreVertIcon from '@mui/icons-material/MoreVert';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
 import { Link } from "react-router-dom";
 import { toast } from 'react-toastify';
 
@@ -125,13 +126,13 @@ const ScrollableTable = () => {
         <thead className="bg-gray-200">
           <tr>
             <th className="px-4 py-2 border">Shop Id</th>
+            <th className="px-4 py-2 border">Reg Date</th>
             <th className="px-4 py-2 border">Name</th>
             <th className="px-4 py-2 border">Phone</th>
             <th className="px-4 py-2 border">Email</th>
             <th className="px-4 py-2 border">GST No</th>
+            <th className="px-4 py-2 border">Category</th>
             <th className="px-4 py-2 border">Store Name</th>
-            <th className="px-4 py-2 border">Total Products</th>
-            <th className="px-4 py-2 border">Reg Date</th>
             <th className="px-4 py-2 border">Address</th>
             <th className="px-4 py-2 border">Status</th>
             <th className="px-4 py-2 border">Action</th>
@@ -141,13 +142,13 @@ const ScrollableTable = () => {
           {eComTableData.map((item) => (
             <tr key={item.shop_id} className="hover:bg-gray-50">
               <td className="px-4 py-2 border">{item.shop_id}</td>
+              <td className="px-4 py-2 border">{item.regDate || "N/A"}</td>
               <td className="px-4 py-2 border">{item.ownerName || "N/A"}</td>
               <td className="px-4 py-2 border">{item.ownerPhone || "N/A"}</td>
               <td className="px-4 py-2 border">{item.ownerEmail || "N/A"}</td>
               <td className="px-4 py-2 border">{item.gstNo || "N/A"}</td>
+              <td className="px-4 py-2 border">{item.category || "N/A"}</td>
               <td className="px-4 py-2 border">{item.shopName || "N/A"}</td>
-              <td className="px-4 py-2 border">10</td>
-              <td className="px-4 py-2 border">{item.regDate || "N/A"}</td>
               <td className="px-4 py-2 border">{item.address || "N/A"}</td>
               <td className={`px-4 py-2 border ${item.shopStatus ? "bg-green-200 text-green-900" : "bg-red-200 text-red-900"}`}>{item.shopStatus ? 'Active' : 'Inactive'}</td>
               <td className="px-4 py-2 border flex justify-evenly">
@@ -159,7 +160,7 @@ const ScrollableTable = () => {
                     gstNo: item.gstNo
                   }}>
                   <div className="h-8 w-8 bg-black rounded-sm text-white text-sm text-center p-1">
-                    <RemoveRedEyeIcon />
+                    <EditIcon />
                   </div>
                 </Link>
 
@@ -172,7 +173,7 @@ const ScrollableTable = () => {
                 {/* More */}
                 <div className="h-8 w-8 bg-black rounded-sm text-white text-sm text-center p-1"
                   onClick={() => changeShopStatus(item.shopStatus, item.shop_id)}>
-                  <MoreVertIcon />
+                  {item.shopStatus ? <CheckCircleIcon /> : <RadioButtonUncheckedIcon />}
                 </div>
 
               </td>

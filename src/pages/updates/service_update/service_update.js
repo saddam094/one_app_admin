@@ -50,6 +50,10 @@ const Service_man_update = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
+    var serviceManaadharImage = '';
+    var servicemanProfileImage = '';
+    var serviceManbannerImage = '';
+
     // Handle Selected Time 
     const handleChangeSelectedTime = (event) => {
         setSelectedTime(timeSlot[event.target.value]);
@@ -108,10 +112,55 @@ const Service_man_update = () => {
         }
     };
 
+    const fetchServiceManDetails = async () => {
+        try {
+
+            var data = {
+                serviceManId: serviceManId
+            };
+
+            const response = await axios.post("https://r2fjv162gj.execute-api.ap-south-1.amazonaws.com/prod/serviceman_details_using_serviceManId", data);
+
+            console.log("API Response Service Man Details :", response);
+
+            if (response.data && response.data['body-json'].statusCode === 200) {
+
+                const data = response.data['body-json'].body.data;
+
+                initialformData.serviceManInfo.name = data.name;
+                initialformData.serviceManInfo.phone = data.phone;
+                initialformData.serviceManInfo.storeName = data.storeName;
+                initialformData.serviceManInfo.address = data.address;
+                initialformData.status = data.status;
+
+                serviceManaadharImage = data.aadhar;
+                serviceManbannerImage = data.bannerImage;
+                servicemanProfileImage = data.servicemanImage;
+
+            } else if (response.data['body-json']['statusCode'] === 400) {
+                notifyError(response.data['body-json'].body.message);
+            } else {
+                console.error("Unexpected response format:", response.data['body-json']);
+                throw new Error("Failed to fetch data");
+            }
+        } catch (err) {
+            console.error("Fetch Error:", err);
+            setError(err.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     useEffect(() => {
+
         if(categoryList.length === 0){
             fetchCategoryList();
         }
+
+        if(initialformData.serviceManInfo.name === ''){
+            fetchServiceManDetails();
+        }
+
     });
 
     // Handle Submit
@@ -119,7 +168,9 @@ const Service_man_update = () => {
 
         const adminEmail = localStorage.getItem('adminEmail');
 
-        await uploadProcess();
+        if(formData.servicemanImage !== '' && formData.bannerImage !== '' && formData.aadhar !== ''){
+            await uploadProcess();
+        }
 
         var data = {
             adminEmail: adminEmail,
@@ -131,12 +182,14 @@ const Service_man_update = () => {
                 address: formData.serviceManInfo.address,
             },
             category: selectedCategory,
-            aadhar: formData.aadhar,
-            serviceManImage: formData.servicemanImage,
-            bannerImage: formData.bannerImage,
+            aadhar: formData.aadhar === '' ? serviceManaadharImage : formData.aadhar,
+            serviceManImage: formData.servicemanImage === '' ? servicemanProfileImage : formData.servicemanImage,
+            bannerImage: formData.bannerImage === '' ? serviceManbannerImage : formData.bannerImage,
             status: true,
             timeList: selectedTime
         };
+
+        console.log('final data', data);
 
         try {
             const response = await axios.post('https://r2fjv162gj.execute-api.ap-south-1.amazonaws.com/prod/edit_serviceman_details', data);

@@ -2,9 +2,10 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { Link } from "react-router-dom";
-import RemoveRedEyeIcon from '@mui/icons-material/RemoveRedEye';
+import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
-import MoreVertIcon from '@mui/icons-material/MoreVert';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
 
 const ScrollableTableDoctor = () => {
 
@@ -154,7 +155,7 @@ const ScrollableTableDoctor = () => {
                     email: item.email
                   }}>
                   <div className="h-8 w-8 bg-black rounded-sm text-white text-sm text-center p-1">
-                    <RemoveRedEyeIcon />
+                    <EditIcon />
                   </div>
                 </Link>
 
@@ -167,7 +168,7 @@ const ScrollableTableDoctor = () => {
                 {/* More */}
                 <div className="h-8 w-8 bg-black rounded-sm text-white text-sm text-center p-1"
                   onClick={() => changeDoctorStatus(item.status, item.doctor_id)}>
-                  <MoreVertIcon />
+                  {item.status ? <CheckCircleIcon /> : <RadioButtonUncheckedIcon />}
                 </div>
 
               </td>

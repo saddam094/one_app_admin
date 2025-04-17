@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
-import RemoveRedEyeIcon from '@mui/icons-material/RemoveRedEye';
+import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
-import MoreVertIcon from '@mui/icons-material/MoreVert';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
 import { toast } from "react-toastify";
 import { Link } from "react-router-dom";
 import axios from "axios";
@@ -156,7 +157,7 @@ const ScrollableTableServices = () => {
                     serviceManId: item.serviceManId
                   }}>
                   <div className="h-8 w-8 bg-black rounded-sm text-white text-sm text-center p-1">
-                    <RemoveRedEyeIcon />
+                    <EditIcon />
                   </div>
                 </Link>
 
@@ -169,7 +170,7 @@ const ScrollableTableServices = () => {
                 {/* More */}
                 <div className="h-8 w-8 bg-black rounded-sm text-white text-sm text-center p-1"
                   onClick={() => changeServiceManStatus(item.status, item.serviceManId)}>
-                  <MoreVertIcon />
+                  {item.status ? <CheckCircleIcon /> : <RadioButtonUncheckedIcon />}
                 </div>
 
               </td>

@@ -54,6 +54,10 @@ const Doctor_update = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
+    var doctorAadharImage = '';
+    var doctorProfileImage = '';
+    var doctorBannerImage = '';
+
     // Handle Selected Time 
     const handleChangeSelectedTime = (event) => {
         setSelectedTime(timeSlot[event.target.value]);
@@ -112,10 +116,57 @@ const Doctor_update = () => {
         }
     };
 
+    const fetchDoctorDetails = async () => {
+        try {
+
+            var data = {
+                doctor_id: doctorId
+            };
+
+            const response = await axios.post("https://r2fjv162gj.execute-api.ap-south-1.amazonaws.com/prod/doctor_details_using_doctorId", data);
+
+            console.log("API Response Doctor Details :", response);
+
+            if (response.data && response.data['body-json'].statusCode === 200) {
+
+                const data = response.data['body-json'].body.data;
+
+                initialformData.doctorInfo.name = data.name;
+                initialformData.doctorInfo.phone = data.phone;
+                initialformData.doctorInfo.clinicName = data.clinicName;
+                initialformData.doctorInfo.fee = data.fee;
+                initialformData.doctorInfo.about = data.about;
+                initialformData.doctorInfo.address = data.address;
+                initialformData.status = data.status;
+                initialformData.timeList = data.timeList;
+
+                doctorAadharImage = data.aadhar;
+                doctorBannerImage = data.bannerImage;
+                doctorProfileImage = data.image;
+
+            } else if (response.data['body-json']['statusCode'] === 400) {
+                notifyError(response.data['body-json'].body.message);
+            } else {
+                console.error("Unexpected response format:", response.data['body-json']);
+                throw new Error("Failed to fetch data");
+            }
+        } catch (err) {
+            console.error("Fetch Error:", err);
+            setError(err.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     useEffect(() => {
         if (categoryList.length === 0) {
             fetchCategoryList();
         }
+
+        if(initialformData.doctorInfo.name === ''){
+            fetchDoctorDetails();
+        }
+
     });
 
     // Handle Submit
@@ -123,8 +174,10 @@ const Doctor_update = () => {
 
         const adminEmail = localStorage.getItem('adminEmail');
 
-        await uploadProcess();
-
+        if(formData.aadhar !== '' && formData.bannerImage !== 0 && formData.doctorImage !== ''){
+            await uploadProcess();
+        }
+        
         var data = {
             adminEmail: adminEmail,
             doctorId: doctorId,
@@ -138,9 +191,9 @@ const Doctor_update = () => {
                 address: formData.doctorInfo.address,
             },
             category: category,
-            aadhar: formData.aadhar,
-            doctorImage: formData.doctorImage,
-            bannerImage: formData.bannerImage,
+            aadhar: formData.aadhar === '' ? doctorAadharImage : formData.aadhar,
+            doctorImage: formData.doctorImage === '' ? doctorProfileImage : formData.doctorImage,
+            bannerImage: formData.bannerImage === '' ? doctorBannerImage : formData.bannerImage,
             status: true,
             timeList: selectedTime
         };

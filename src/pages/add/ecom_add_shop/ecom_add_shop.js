@@ -36,28 +36,28 @@ const Ecom_add_shop = () => {
 
     const [formData, setFormData] = useState(initialformData);
 
+    const subCategoryList = [];
     const [subCategories, setSubCategories] = useState([]);
+    const [subCategoriesImage, setSubCategoriesImage] = useState([]);
     const [title, setTitle] = useState("");
     const [image, setImage] = useState(null);
 
     const handleImageChange = (e) => {
         const file = e.target.files[0];
         if (file) {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setImage(reader.result);
-            };
-            reader.readAsDataURL(file);
+            setImage(file);  // store the actual file instead of base64
         }
     };
 
     const handleAddSubCategory = () => {
         if (title && image) {
-            setSubCategories([...subCategories, { title, image }]);
+            setSubCategories(prev => [...prev, title]);
+            setSubCategoriesImage(prev => [...prev, image]);  // store file directly
             setTitle("");
             setImage(null);
         }
     };
+
 
     const removeSubCategory = (index) => {
         const updatedList = subCategories.filter((_, i) => i !== index);
@@ -101,6 +101,8 @@ const Ecom_add_shop = () => {
     // Handle Submit
     const handleSubmit = async () => {
 
+        console.log('form data', formData);
+
         // Shop Details ---> Validation
         if (formData.shopDetails.ownerName === '' || formData.shopDetails.ownerEmail === '' || formData.shopDetails.ownerPhone === '' || formData.shopDetails.gstNo === '' || formData.shopDetails.shopName === '' || formData.shopDetails.address === '') {
             notifyError('Shop Details All Fields Are Required');
@@ -132,7 +134,7 @@ const Ecom_add_shop = () => {
                 ownerPhone: formData.shopDetails.ownerPhone,
                 category: formData.shopDetails.category,
                 shopBannerimage: formData.documents.shopBannerimage,
-                subCategory: subCategories,
+                subCategory: subCategoryList,
                 gstNo: formData.shopDetails.gstNo,
                 shopName: formData.shopDetails.shopName,
                 address: formData.shopDetails.address,
@@ -141,6 +143,8 @@ const Ecom_add_shop = () => {
             aadhar: formData.documents.aadhar,
             shopOwnerImage: formData.documents.shopOwnerImage
         };
+
+        console.log('final data', data);
 
         try {
             const response = await axios.post('https://r2fjv162gj.execute-api.ap-south-1.amazonaws.com/prod/ecommerce_shops', data);
@@ -180,7 +184,7 @@ const Ecom_add_shop = () => {
             "subCategoryImages": sCategoryTitle
         }
 
-        console.log(data);
+        console.log('saddam check karo ', data);
 
         try {
             const response = await axios.post('https://r2fjv162gj.execute-api.ap-south-1.amazonaws.com/prod/ecommerce_shop_image_presigned', data);
@@ -250,16 +254,11 @@ const Ecom_add_shop = () => {
      */
     const uploadProcess = async () => {
 
-        const sCategoryImage = [];
         const sCategoryImageName = [];
 
-        subCategories.forEach((item) => {
-            sCategoryImage.push(item.image);
-        });
-
-        subCategories.forEach((item) => {
-            sCategoryImageName.push(item.image.name);
-        });
+        for (let index = 0; index < subCategories.length; index++) {
+            sCategoryImageName[index] = subCategoriesImage[index].name;
+        }
 
         const body = await getPresignedUrls(sCategoryImageName);
 
@@ -272,14 +271,20 @@ const Ecom_add_shop = () => {
             formData.documents.shopOwnerImage = body.uploadedFiles.documents[2].key;
             console.log('documents completed');
 
-            await uploadImages(body.signedUrls.subCategoryImages, sCategoryImage);
+            await uploadImages(body.signedUrls.subCategoryImages, subCategoriesImage);
 
-            subCategories.forEach((item, index) => {
-                console.log(index);
-                subCategories[index].image = body.uploadedFiles.subCategoryImages[index].key;
+            subCategoriesImage.forEach((item, index) => {
+                subCategoriesImage[index] = body.uploadedFiles.subCategoryImages[index].key;
             });
 
             console.log('sub category completed');
+
+            for (let index = 0; index < subCategoriesImage.length; index++) {
+                subCategoryList[index] = {
+                    title: subCategories[index],
+                    image: subCategoriesImage[index]
+                };
+            }
 
         } else {
             console.error("❌ No signed URLs received. Aborting upload.");
@@ -371,7 +376,7 @@ const Ecom_add_shop = () => {
                     </button>
                 </div>
                 <div className="flex flex-row flex-wrap gap-x-5 gap-y-2">
-                    {subCategories.map((sub, index) => (
+                    {subCategoriesImage.map((sub, index) => (
                         <div key={index} className="relative border p-2 flex flex-col items-center">
                             {/* Cross Icon for Delete */}
                             <X
@@ -379,8 +384,13 @@ const Ecom_add_shop = () => {
                                 size={16}
                                 onClick={() => removeSubCategory(index)}
                             />
-                            <p>{sub.title}</p>
-                            <img src={sub.image} alt={sub.title} className="w-20 h-20 mt-2" />
+                            <p>{subCategories[index]}</p>
+                            {/* <img src={sub} alt={subCategories[index]} className="w-20 h-20 mt-2" /> */}
+                            <img
+                                src={URL.createObjectURL(sub)}  // sub is a File
+                                alt={subCategories[index]}
+                                className="w-20 h-20 mt-2"
+                            />
                         </div>
                     ))}
                 </div>

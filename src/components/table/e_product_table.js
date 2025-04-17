@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from 'axios';
-import RemoveRedEyeIcon from '@mui/icons-material/RemoveRedEye';
+import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { Link } from 'react-router-dom'
 import { toast } from 'react-toastify';
@@ -84,26 +84,30 @@ const ScrollableTableEProduct = () => {
       <table className="min-w-full text-left border-collapse">
         <thead className="bg-gray-200">
           <tr>
-            <th className="px-4 py-2 border">ID</th>
+            <th className="px-4 py-2 border">Shop ID</th>
+            <th className="px-4 py-2 border">Product ID</th>
             <th className="px-4 py-2 border">P Name</th>
             <th className="px-4 py-2 border">Category</th>
+            <th className="px-4 py-2 border">Sub-Category</th>
+            <th className="px-4 py-2 border">Shop Name</th>
             <th className="px-4 py-2 border">Actual Price</th>
             <th className="px-4 py-2 border">S P</th>
             <th className="px-4 py-2 border">P Discount</th>
-            <th className="px-4 py-2 border">Store Name</th>
             <th className="px-4 py-2 border">Action</th>
           </tr>
         </thead>
         <tbody>
           {eProductTableData.map((item) => (
             <tr key={item.productId} className="hover:bg-gray-50">
+              <td className="px-4 py-2 border">{item.shopId}</td>
               <td className="px-4 py-2 border">{item.productId}</td>
               <td className="px-4 py-2 border">{item.productName || 'N/A'}</td>
               <td className="px-4 py-2 border">{item.category || 'N/A'}</td>
+              <td className="px-4 py-2 border">{item.subCategory || 'N/A'}</td>
+              <td className="px-4 py-2 border">{item.shopName || 'N/A'}</td>
               <td className="px-4 py-2 border">₹ {item.actualPrice || 'N/A'}</td>
               <td className="px-4 py-2 border">₹ {item.priceAfterDiscount || 'N/A'}</td>
               <td className="px-4 py-2 border">{item.productDiscountPercentage}%</td>
-              <td className="px-4 py-2 border">{item.shopName || 'N/A'}</td>
               <td className="px-4 py-2 border flex justify-evenly">
                 {/* Eye */}
                 <Link to={"/ecom_product_update"}
@@ -114,7 +118,7 @@ const ScrollableTableEProduct = () => {
                     shopId: item.shopId
                   }}>
                   <div className="h-8 w-8 bg-black rounded-sm text-white text-sm text-center p-1">
-                    <RemoveRedEyeIcon />
+                    <EditIcon />
                   </div>
                 </Link>
 

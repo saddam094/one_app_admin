@@ -39,7 +39,10 @@ const Ecom_product_update = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
+
     const [selectedSubCategory, setSelectedSubCategory] = useState("");
+
+    var productImages = [];
 
     //Fetch API data using Axios  
     const fetchData = async () => {
@@ -55,7 +58,50 @@ const Ecom_product_update = () => {
 
             if (response.data && response.data['body-json'].statusCode === 200) {
                 setSubCategory(response.data['body-json'].body);
-                setSelectedSubCategory(response.data['body-json'].body[0].title);
+                // setSelectedSubCategory(response.data['body-json'].body[0].title);
+            } else if (response.data['body-json']['statusCode'] === 400) {
+                notifyError(response.data['body-json'].body.message);
+            } else {
+                console.error("Unexpected response format:", response.data['body-json']);
+                throw new Error("Failed to fetch data");
+            }
+        } catch (err) {
+            console.error("Fetch Error:", err);
+            setError(err.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const fetchProductDetails = async () => {
+        try {
+
+            var data = {
+                category: category,
+                skuId: skuId
+            };
+
+            const response = await axios.post("https://r2fjv162gj.execute-api.ap-south-1.amazonaws.com/prod/ecom_product_detail_using_skuid", data);
+
+            console.log("API Response Product Details :", response);
+
+            if (response.data && response.data['body-json'].statusCode === 200) {
+
+                const data = response.data['body-json'].body.product;
+
+                initialProductFormData.subCategory = data.subCategory;
+                initialProductFormData.productDetails.productName = data.productName;
+                initialProductFormData.productDetails.price = data.actualPrice;
+                initialProductFormData.productDetails.description = data.description;
+                initialProductFormData.productDetails.productDiscountPercentage = data.productDiscountPercentage;
+                // initialProductFormData.productDetails.image = data.image;
+
+                productImages = data.image;
+
+                if(selectedSubCategory === ''){
+                    setSelectedSubCategory(data.subCategory);
+                }
+
             } else if (response.data['body-json']['statusCode'] === 400) {
                 notifyError(response.data['body-json'].body.message);
             } else {
@@ -72,9 +118,15 @@ const Ecom_product_update = () => {
 
 
     useEffect(() => {
+
         if (subCategory.length === 0) {
             fetchData();
         }
+
+        if (initialProductFormData.productDetails.productName === '') {
+            fetchProductDetails();
+        }
+
     });
 
     // Handle input change for text fields
@@ -151,7 +203,7 @@ const Ecom_product_update = () => {
                 description: productFormData.productDetails.description,
                 price: productFormData.productDetails.price,
                 productDiscountPercentage: productFormData.productDetails.productDiscountPercentage,
-                image: productFormData.productDetails.image
+                image: productFormData.productDetails.image.length === 0 ? productImages : productFormData.productDetails.image
             }
         };
 
@@ -353,7 +405,30 @@ const Ecom_product_update = () => {
 
                             {/* Image Previews */}
                             <div className="col-span-1 md:col-span-3 flex gap-2 flex-wrap">
-                                {productFormData.productDetails.image.map((file, index) => (
+                                {productFormData.productDetails.image.map((file, index) => {
+                                    const isFile = file instanceof File;
+                                    const imageUrl = isFile ? URL.createObjectURL(file) : file;
+
+                                    return (
+                                        <div key={index} className="relative w-24 h-24">
+                                            <img
+                                                src={imageUrl}
+                                                alt="Preview"
+                                                className="w-full h-full object-cover rounded-md border"
+                                            />
+                                            <button
+                                                type="button"
+                                                className="absolute top-0 right-0 bg-red-500 text-white text-xs px-1 rounded-full"
+                                                onClick={() => removeImage(index)}
+                                            >
+                                                ✕
+                                            </button>
+                                        </div>
+                                    );
+                                })}
+
+
+                                {/* {productFormData.productDetails.image.map((file, index) => (
                                     <div key={index} className="relative w-24 h-24">
                                         <img
                                             src={URL.createObjectURL(file)}
@@ -368,7 +443,7 @@ const Ecom_product_update = () => {
                                             ✕
                                         </button>
                                     </div>
-                                ))}
+                                ))} */}
                             </div>
                         </form>
                     </div>

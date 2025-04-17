@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'react-toastify';
@@ -38,27 +38,144 @@ const EcomUpdate = () => {
     };
 
     const [formData, setFormData] = useState(initialformData);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    
+    var aadharImage = '';
+    var shopBannerimage = '';
 
+    // const subCategoryList = [];
     const [subCategories, setSubCategories] = useState([]);
     const [title, setTitle] = useState("");
     const [image, setImage] = useState(null);
 
-    const handleImageChange = (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setImage(reader.result);
+    const fetchShopDetails = async () => {
+        try {
+
+            var data = {
+                shop_id: shopId
             };
-            reader.readAsDataURL(file);
+
+            const response = await axios.post("https://r2fjv162gj.execute-api.ap-south-1.amazonaws.com/prod/ecom_shop_details_using_shopid_category", data);
+
+            console.log("API Response Product Details :", response);
+
+            if (response.data && response.data['body-json'].statusCode === 200) {
+
+                const data = response.data['body-json'].body.info;
+
+                initialformData.shopDetails.ownerName = data.ownerName;
+                initialformData.shopDetails.category = data.category;
+                initialformData.shopDetails.ownerPhone = data.ownerPhone;
+                initialformData.shopDetails.ownerEmail = data.ownerEmail;
+                initialformData.shopDetails.shopName = data.shopName;
+                initialformData.shopDetails.address = data.address;
+
+                aadharImage = data.aadhar;
+                shopBannerimage = data.shopBannerimage;
+
+                if(subCategories.length === 0 && data.subCategory.length !== 0){
+                    setSubCategories(data.subCategory);
+                }
+
+            } else if (response.data['body-json']['statusCode'] === 400) {
+                notifyError(response.data['body-json'].body.message);
+            } else {
+                console.error("Unexpected response format:", response.data['body-json']);
+                throw new Error("Failed to fetch data");
+            }
+        } catch (err) {
+            console.error("Fetch Error:", err);
+            setError(err.message);
+        } finally {
+            setLoading(false);
         }
     };
 
-    const handleAddSubCategory = () => {
-        if (title && image) {
-            setSubCategories([...subCategories, { title, image }]);
-            setTitle("");
-            setImage(null);
+
+    useEffect(() => {
+
+        if(initialformData.shopDetails.ownerName === '') {
+            fetchShopDetails();
+        }
+
+    });
+
+    const handleImageChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            setImage(file);  // store the actual file instead of base64
+        }
+    };
+
+    const handleAddSubCategory = async () => {
+
+        const key = await uploadProcessSubCategory();
+
+        const data = {
+            shop_id: shopId,
+            title: title,
+            image: key,
+            status: true
+        };
+
+        console.log('final Sub-Category data', data);
+
+        try {
+            const response = await axios.post('https://r2fjv162gj.execute-api.ap-south-1.amazonaws.com/prod/ecommerce_shop_add_delete_subcategory', data);
+
+            console.log('response', response);
+
+            if (response.data['body-json']['statusCode'] === 200) {
+                notify("Sub-Category Added Successfully");
+                const newItem = {
+                    title: title,
+                    image: key
+                };
+                const updatedList = [...subCategories, newItem];
+                setSubCategories(updatedList);
+
+                setTitle('');
+                setImage(null);
+                
+            } else if (response.data['body-json']['statusCode'] === 400) {
+                notifyError(response.data['body-json'].body.message);
+            } else {
+                console.log(`api response${response.data['body-json']['statusCode']}`)
+            }
+
+        } catch (error) {
+            console.error('Error submitting data:', error.response ? error.response.data : error.message);
+        }
+    };
+
+    const handleDeleteSubCategory = async (titleName, imageLink, index) => {
+
+        const data = {
+            shop_id: shopId,
+            title: titleName,
+            image: imageLink,
+            status: false
+        };
+
+        console.log('final Sub-Category data', data);
+
+        try {
+            const response = await axios.post('https://r2fjv162gj.execute-api.ap-south-1.amazonaws.com/prod/ecommerce_shop_add_delete_subcategory', data);
+
+            console.log('response', response);
+
+            if (response.data['body-json']['statusCode'] === 200) {
+                notify("Sub-Category Deleted Successfully");
+                removeSubCategory(index);
+            } else if (response.data['body-json']['statusCode'] === 400) {
+                notifyError(response.data['body-json'].body.message);
+            } else {
+                console.log(`api response${response.data['body-json']['statusCode']}`)
+            }
+
+        } catch (error) {
+            console.error('Error submitting data:', error.response ? error.response.data : error.message);
         }
     };
 
@@ -105,9 +222,12 @@ const EcomUpdate = () => {
     // Handle Submit
     const handleUpdate = async () => {
 
+
+
         const adminEmail = localStorage.getItem('adminEmail');
-    
-        await uploadProcess();
+        if(formData.documents.aadhar !== '' || formData.documents.shopBannerimage !== ''){
+            await uploadProcess();
+        }
 
         var data = {
             adminEmail: adminEmail,
@@ -118,19 +238,23 @@ const EcomUpdate = () => {
                 Category: formData.shopDetails.category,
                 ownerEmail: formData.shopDetails.ownerEmail,
                 ownerPhone: formData.shopDetails.ownerPhone,
-                shopBannerimage: formData.documents.shopBannerimage,
+                shopBannerimage: formData.documents.shopBannerimage === '' ? shopBannerimage : formData.documents.shopBannerimage,
                 subCategory: subCategories,
                 gstNo: gstNo,
                 shopName: formData.shopDetails.shopName,
                 address: formData.shopDetails.address,
                 shopStatus: formData.shopDetails.shopStatus
             },
-            aadhar: formData.documents.aadhar
+            aadhar: formData.documents.aadhar === ''? aadharImage : formData.documents.aadhar
         };
+
+        console.log('final data', data);
 
 
         try {
             const response = await axios.post('https://r2fjv162gj.execute-api.ap-south-1.amazonaws.com/prod/edit_ecommerce_shop', data);
+
+            console.log('response', response);
 
             if (response.data['body-json']['statusCode'] === 200) {
                 notify("Shop Updated Successfully");
@@ -155,14 +279,14 @@ const EcomUpdate = () => {
     /**
      * Step 1: Get Pre-Signed URLs by making a POST request.
      */
-    const getPresignedUrls = async (sCategoryTitle) => {
+    const getPresignedUrls = async () => {
 
         var data = {
             "documents": [
                 formData.documents.aadhar.name,
                 formData.documents.shopBannerimage.name,
             ],
-            "subCategoryImages": sCategoryTitle
+            "subCategoryImages": []
         };
 
         try {
@@ -231,40 +355,104 @@ const EcomUpdate = () => {
      */
     const uploadProcess = async () => {
 
-        const sCategoryImage = [];
-        const sCategoryImageName = [];
-
-        subCategories.forEach((item) => {
-            sCategoryImage.push(item.image);
-        });
-
-        subCategories.forEach((item) => {
-            sCategoryImageName.push(item.image.name);
-        });
-
-        const body = await getPresignedUrls(sCategoryImageName);
+        const body = await getPresignedUrls();
 
 
-        if (body.signedUrls.documents.length > 0 && body.signedUrls.subCategoryImages.length > 0) {
+        if (body.signedUrls.documents.length > 0 ) {
             await uploadImages(body.signedUrls.documents, [formData.documents.aadhar, formData.documents.shopBannerimage]);
 
             formData.documents.aadhar = body.uploadedFiles.documents[0].key;
             formData.documents.shopBannerimage = body.uploadedFiles.documents[1].key;
             console.log('documents completed');
 
-            await uploadImages(body.signedUrls.subCategoryImages, sCategoryImage);
-
-            subCategories.forEach((item, index) => {
-                console.log(index);
-                subCategories[index].image = body.uploadedFiles.subCategoryImages[index].key;
-            });
-
-            console.log('sub category completed');
-
         } else {
             console.error("❌ No signed URLs received. Aborting upload.");
         }
     };
+
+
+
+    /// Add and Delete Sub-Category
+
+    /**
+     * Step 1: Get Pre-Signed URLs by making a POST request.
+     */
+    const getPresignedUrlsSubCategory = async (imageFile) => {
+        const data = {
+            fileName: [imageFile.name]
+        };
+
+        try {
+            const response = await axios.post(
+                'https://r2fjv162gj.execute-api.ap-south-1.amazonaws.com/prod/ecommerce_subcategory_presigned',
+                data
+            );
+
+            const obj = JSON.parse(response.data['body-json'].body);
+            
+            console.log('presinged', obj);
+
+            const body = obj.uploadDetails[0];
+
+            if (body && body.signedUrl) {
+                console.log("✅ Pre-signed URL fetched successfully!");
+                return {
+                    signedUrl: body.signedUrl,
+                    key: body.key
+                };
+            } else {
+                throw new Error("Pre-signed URL not found in response.");
+            }
+        } catch (error) {
+            console.error("❌ Error fetching pre-signed URL:", error.message);
+            return null;
+        }
+    };
+
+    /**
+     * Step 2: Upload images using the pre-signed URLs (PUT request).
+     */
+    const uploadImageSubCategory = async (signedUrl, imageFile) => {
+        try {
+            const uploadResponse = await axios.put(signedUrl, imageFile, {
+                headers: {
+                    'Content-Type': imageFile.type
+                }
+            });
+
+            if (uploadResponse.status === 200) {
+                console.log(`✅ Uploaded ${imageFile.name} successfully!`);
+                return true;
+            } else {
+                console.log(`⚠️ Upload failed for ${imageFile.name}, Status: ${uploadResponse.status}`);
+                return false;
+            }
+        } catch (error) {
+            console.error(`❌ Error uploading ${imageFile.name}:`, error.message);
+            return false;
+        }
+    };
+
+
+    /**
+     * Execute the steps in order.
+     */
+    const uploadProcessSubCategory = async () => {
+
+        const presigned = await getPresignedUrlsSubCategory(image);
+
+        if (presigned) {
+            const success = await uploadImageSubCategory(presigned.signedUrl, image);
+            if (success) {
+                return presigned.key;
+            }
+        } else {
+            console.error("❌ No signed URLs received. Aborting upload.");
+            return null;
+        }
+    }
+
+
 
 
     // Define dynamic field configurations
@@ -283,6 +471,8 @@ const EcomUpdate = () => {
     ];
 
     if (shopId === "") return <p className="text-center">Unable to get shop_id</p>;
+    if (loading) return <p className="text-center">Loading...</p>;
+    if (error) return <p className="text-center text-red-500">Error: {error}</p>;
 
     return (
         <>
@@ -356,10 +546,14 @@ const EcomUpdate = () => {
                                 <X
                                     className="absolute top-1 right-1 cursor-pointer text-red-500 hover:text-red-700"
                                     size={16}
-                                    onClick={() => removeSubCategory(index)}
+                                    onClick={() => handleDeleteSubCategory(sub.title, sub.image, index)}
                                 />
                                 <p>{sub.title}</p>
-                                <img src={sub.image} alt={sub.title} className="w-20 h-20 mt-2" />
+                                <img
+                                    src={sub.image}
+                                    alt={sub.title}
+                                    className="w-20 h-20 mt-2"
+                                />
                             </div>
                         ))}
                     </div>
@@ -416,7 +610,8 @@ const EcomUpdate = () => {
                 </div>
             </div >
         </>
-    )
+    );
+
 }
 
 export default EcomUpdate
