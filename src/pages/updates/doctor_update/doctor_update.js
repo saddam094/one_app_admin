@@ -48,7 +48,7 @@ const Doctor_update = () => {
 
     const [selectedTime, setSelectedTime] = useState(timeSlot[0]);
 
-    const [selectedCategory, setSelectedCategory] = useState('');
+    const [selectedCategory, setSelectedCategory] = useState(category);
 
     const [categoryList, setCategoryList] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -100,8 +100,11 @@ const Doctor_update = () => {
             const response = await axios.get("https://r2fjv162gj.execute-api.ap-south-1.amazonaws.com/prod/doctor_categories_count");
 
             if (response.data && response.data['body-json'].statusCode === 200) {
-                setCategoryList(response.data['body-json'].body);
-                // setSelectedCategory(response.data['body-json'].body[0].title);
+                const list = response.data['body-json'].body;
+                list.splice(0, 0, {title: category});
+                const result = list.filter((item, index) => item !== 'c' || index === 0);
+                setCategoryList(result);
+
             } else if (response.data['body-json']['statusCode'] === 400) {
                 notifyError(response.data['body-json'].body.message);
             } else {
@@ -110,9 +113,9 @@ const Doctor_update = () => {
             }
         } catch (err) {
             console.error("Fetch Error:", err);
-            setError(err.message);
+            // setError(err.message);
         } finally {
-            setLoading(false);
+            // setLoading(false);
         }
     };
 
@@ -174,6 +177,7 @@ const Doctor_update = () => {
 
     });
 
+
     // Handle Submit
     const handleUpdate = async () => {
 
@@ -182,7 +186,8 @@ const Doctor_update = () => {
         if(formData.aadhar !== '' && formData.bannerImage !== 0 && formData.doctorImage !== ''){
             await uploadProcess();
         }
-        
+
+
         var data = {
             adminEmail: adminEmail,
             doctorId: doctorId,
@@ -195,7 +200,7 @@ const Doctor_update = () => {
                 about: formData.doctorInfo.about,
                 address: formData.doctorInfo.address,
             },
-            category: category,
+            category: selectedCategory,
             aadhar: formData.aadhar === '' ? doctorAadharImage : formData.aadhar,
             doctorImage: formData.doctorImage === '' ? doctorProfileImage : formData.doctorImage,
             bannerImage: formData.bannerImage === '' ? doctorBannerImage : formData.bannerImage,
@@ -235,7 +240,7 @@ const Doctor_update = () => {
             "doctorImage": formData.doctorImage.name,
             "bannerImage": formData.bannerImage.name,
             "aadhar": formData.aadhar.name
-        }
+        };
 
         try {
             const response = await axios.post('https://r2fjv162gj.execute-api.ap-south-1.amazonaws.com/prod/doctor_image_presigned', data);
@@ -386,7 +391,6 @@ const Doctor_update = () => {
                 <select
                     className="border border-gray-300 rounded p-2 w-full"
                     value={selectedCategory}
-                    // onChange={handleChangeSelectCategory}
                     onChange={(e) => setSelectedCategory(e.target.value)}
                 >
                     {categoryList.map((category, index) => (

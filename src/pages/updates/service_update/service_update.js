@@ -44,7 +44,7 @@ const Service_man_update = () => {
 
     const [selectedTime, setSelectedTime] = useState(timeSlot[0]);
 
-    const [selectedCategory, setSelectedCategory] = useState('');
+    const [selectedCategory, setSelectedCategory] = useState(category);
 
     const [categoryList, setCategoryList] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -96,8 +96,11 @@ const Service_man_update = () => {
             const response = await axios.get("https://r2fjv162gj.execute-api.ap-south-1.amazonaws.com/prod/one_app_get_each_service_count");
 
             if (response.data && response.data['body-json'].statusCode === 200) {
-                setCategoryList(response.data['body-json'].body);
-                // setSelectedCategory(response.data['body-json'].body[0].title);
+                const list = response.data['body-json'].body;
+                list.splice(0, 0, {title: category});
+                const result = list.filter((item, index) => item !== 'c' || index === 0);
+                setCategoryList(result);
+                
             } else if (response.data['body-json']['statusCode'] === 400) {
                 notifyError(response.data['body-json'].body.message);
             } else {
@@ -106,9 +109,9 @@ const Service_man_update = () => {
             }
         } catch (err) {
             console.error("Fetch Error:", err);
-            setError(err.message);
+            // setError(err.message);
         } finally {
-            setLoading(false);
+            // setLoading(false);
         }
     };
 
