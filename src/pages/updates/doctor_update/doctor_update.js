@@ -30,7 +30,7 @@ const Doctor_update = () => {
             about: '',
             address: '',
         },
-        category: category,
+        category: '',
         aadhar: '',
         doctorImage: '',
         bannerImage: '',
@@ -48,7 +48,7 @@ const Doctor_update = () => {
 
     const [selectedTime, setSelectedTime] = useState(timeSlot[0]);
 
-    const [selectedCategory, setSelectedCategory] = useState(category);
+    const [selectedCategory, setSelectedCategory] = useState('');
 
     const [categoryList, setCategoryList] = useState([]);
     const [loading, setLoading] = useState(true);
