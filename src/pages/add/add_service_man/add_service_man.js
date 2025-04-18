@@ -133,7 +133,7 @@ const Add_service_man = () => {
             },
             category: selectedCategory,
             aadhar: formData.aadhar,
-            serviceManImage: formData.servicemanImage,
+            servicemanImage: formData.servicemanImage,
             bannerImage: formData.bannerImage,
             status: true,
             timeList: selectedTime
