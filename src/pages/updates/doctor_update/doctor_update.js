@@ -101,7 +101,7 @@ const Doctor_update = () => {
 
             if (response.data && response.data['body-json'].statusCode === 200) {
                 setCategoryList(response.data['body-json'].body);
-                setSelectedCategory(response.data['body-json'].body[0].title);
+                // setSelectedCategory(response.data['body-json'].body[0].title);
             } else if (response.data['body-json']['statusCode'] === 400) {
                 notifyError(response.data['body-json'].body.message);
             } else {
@@ -144,6 +144,10 @@ const Doctor_update = () => {
                 doctorBannerImage = data.bannerImage;
                 doctorProfileImage = data.image;
 
+                if(selectedCategory === ''){
+                    setSelectedCategory(data.category);
+                }
+
             } else if (response.data['body-json']['statusCode'] === 400) {
                 notifyError(response.data['body-json'].body.message);
             } else {
@@ -160,12 +164,12 @@ const Doctor_update = () => {
 
     useEffect(() => {
 
-        if(initialformData.doctorInfo.name === ''){
-            fetchDoctorDetails();
-        }
-
         if (categoryList.length === 0) {
             fetchCategoryList();
+        }
+
+        if(initialformData.doctorInfo.name === ''){
+            fetchDoctorDetails();
         }
 
     });

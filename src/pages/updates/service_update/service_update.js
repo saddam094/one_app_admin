@@ -97,7 +97,7 @@ const Service_man_update = () => {
 
             if (response.data && response.data['body-json'].statusCode === 200) {
                 setCategoryList(response.data['body-json'].body);
-                setSelectedCategory(response.data['body-json'].body[0].title);
+                // setSelectedCategory(response.data['body-json'].body[0].title);
             } else if (response.data['body-json']['statusCode'] === 400) {
                 notifyError(response.data['body-json'].body.message);
             } else {
@@ -137,6 +137,10 @@ const Service_man_update = () => {
                 serviceManbannerImage = data.bannerImage;
                 servicemanProfileImage = data.servicemanImage;
 
+                if(selectedCategory === ''){
+                    setSelectedCategory(data.category);
+                }
+
             } else if (response.data['body-json']['statusCode'] === 400) {
                 notifyError(response.data['body-json'].body.message);
             } else {
@@ -152,13 +156,13 @@ const Service_man_update = () => {
     };
 
     useEffect(() => {
-        
-        if(initialformData.serviceManInfo.name === ''){
-            fetchServiceManDetails();
-        }
 
         if(categoryList.length === 0){
             fetchCategoryList();
+        }
+
+        if(initialformData.serviceManInfo.name === ''){
+            fetchServiceManDetails();
         }
 
     });
