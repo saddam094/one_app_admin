@@ -159,12 +159,13 @@ const Doctor_update = () => {
     };
 
     useEffect(() => {
-        if (categoryList.length === 0) {
-            fetchCategoryList();
-        }
 
         if(initialformData.doctorInfo.name === ''){
             fetchDoctorDetails();
+        }
+
+        if (categoryList.length === 0) {
+            fetchCategoryList();
         }
 
     });

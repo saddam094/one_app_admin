@@ -152,13 +152,13 @@ const Service_man_update = () => {
     };
 
     useEffect(() => {
+        
+        if(initialformData.serviceManInfo.name === ''){
+            fetchServiceManDetails();
+        }
 
         if(categoryList.length === 0){
             fetchCategoryList();
-        }
-
-        if(initialformData.serviceManInfo.name === ''){
-            fetchServiceManDetails();
         }
 
     });

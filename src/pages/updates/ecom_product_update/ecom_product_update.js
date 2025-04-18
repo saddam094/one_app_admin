@@ -119,12 +119,12 @@ const Ecom_product_update = () => {
 
     useEffect(() => {
 
-        if (subCategory.length === 0) {
-            fetchData();
-        }
-
         if (initialProductFormData.productDetails.productName === '') {
             fetchProductDetails();
+        }
+
+        if (subCategory.length === 0) {
+            fetchData();
         }
 
     });
