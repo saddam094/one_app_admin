@@ -21,6 +21,7 @@ const Add_service_man = () => {
             email: '',
             phone: '',
             fee: '',
+            about: '',
             storeName: '',
             address: '',
         },
@@ -126,6 +127,7 @@ const Add_service_man = () => {
                 email: formData.serviceManInfo.email,
                 phone: formData.serviceManInfo.phone,
                 fee: formData.serviceManInfo.fee,
+                about: formData.serviceManInfo.about,
                 storeName: formData.serviceManInfo.storeName,
                 address: formData.serviceManInfo.address,
             },
@@ -268,8 +270,9 @@ const Add_service_man = () => {
         { name: 'phone', placeholder: 'Phone' },
         { name: 'email', placeholder: 'Email' },
         { name: 'fee', placeholder: 'Fee' },
-        { name: 'storeName', placeholder: 'Store Name' },
+        { name: 'storeName', placeholder: 'Shop Name' },
         { name: 'address', placeholder: 'Address', type: 'textarea' },
+        { name: 'about', placeholder: 'Description', type: 'textarea'}
     ];
 
     const documentFields = [

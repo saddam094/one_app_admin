@@ -52,12 +52,16 @@ const ScrollableTableServices = () => {
 
     var data = {
       "serviceManId": serviceManId,
-      "imageUrls": img
+      "imageUrls": img.length === 0 ? [] : img
     };
+
+    console.log('Delete Service Man', data);
 
     try {
 
       const response = await axios.post("https://r2fjv162gj.execute-api.ap-south-1.amazonaws.com/prod/delete_serviceman", data);
+
+      console.log('response Delete', response);
 
       if (response.data && response.data['body-json'].statusCode === 200) {
         console.log('Service Man Deleted Successfully');
