@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'react-toastify';
@@ -36,11 +36,19 @@ const Ecom_add_shop = () => {
 
     const [formData, setFormData] = useState(initialformData);
 
+    const [selectedCategory, setSelectedCategory] = useState("");
+    const [categoryList, setCategoryList] = useState([]);
+
+    // const categoryList = [{title: 'food'}, {title: 'grocery'}, {title: 'pharmacy'}];
+
     const subCategoryList = [];
     const [subCategories, setSubCategories] = useState([]);
     const [subCategoriesImage, setSubCategoriesImage] = useState([]);
     const [title, setTitle] = useState("");
     const [image, setImage] = useState(null);
+
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
 
     const handleImageChange = (e) => {
         const file = e.target.files[0];
@@ -98,6 +106,36 @@ const Ecom_add_shop = () => {
         setFormData(initialformData);
     };
 
+
+    /// Fetch Category List
+    const fetchCategoryList = async () => {
+        try {
+            const response = await axios.get("https://r2fjv162gj.execute-api.ap-south-1.amazonaws.com/prod/ecom_all_categories_get");
+
+            console.log("API Response:", response);
+
+            if (response.data && response.data['body-json'].statusCode === 200) {
+                setCategoryList(response.data['body-json'].body.categories);
+                setSelectedCategory(response.data['body-json'].body.categories[0].categoryName);
+            } else {
+                console.error("Unexpected response format:", response.data['body-json']);
+                throw new Error("Failed to fetch data");
+            }
+        } catch (err) {
+            console.error("Fetch Error:", err);
+            setError(err.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        if (categoryList.length === 0) {
+            fetchCategoryList();
+        }
+    });
+
+
     // Handle Submit
     const handleSubmit = async () => {
 
@@ -106,6 +144,11 @@ const Ecom_add_shop = () => {
         // Shop Details ---> Validation
         if (formData.shopDetails.ownerName === '' || formData.shopDetails.ownerEmail === '' || formData.shopDetails.ownerPhone === '' || formData.shopDetails.gstNo === '' || formData.shopDetails.shopName === '' || formData.shopDetails.address === '') {
             notifyError('Shop Details All Fields Are Required');
+            return;
+        }
+
+        if(selectedCategory === ''){
+            notifyError('Please Select Categories');
             return;
         }
 
@@ -132,7 +175,7 @@ const Ecom_add_shop = () => {
                 ownerName: formData.shopDetails.ownerName,
                 ownerEmail: formData.shopDetails.ownerEmail,
                 ownerPhone: formData.shopDetails.ownerPhone,
-                category: formData.shopDetails.category,
+                category: selectedCategory,
                 shopBannerimage: formData.documents.shopBannerimage,
                 subCategory: subCategoryList,
                 gstNo: formData.shopDetails.gstNo,
@@ -299,7 +342,7 @@ const Ecom_add_shop = () => {
         { name: 'ownerName', placeholder: 'Owner Name' },
         { name: 'ownerEmail', placeholder: 'Email' },
         { name: 'ownerPhone', placeholder: 'Phone' },
-        { name: 'category', placeholder: 'Category' },
+        // { name: 'category', placeholder: 'Category' },
         { name: 'gstNo', placeholder: 'GST Number' },
         { name: 'shopName', placeholder: 'Shop Name' },
         { name: 'address', placeholder: 'Address', type: 'textarea' },
@@ -310,6 +353,10 @@ const Ecom_add_shop = () => {
         { name: 'shopOwnerImage', label: 'Owner Image' },
         { name: 'shopBannerimage', label: 'Shop Banner Image' }
     ];
+
+
+    if (loading) return <p className="text-center">Loading...</p>;
+    if (error) return <p className="text-center text-red-500">Error: {error}</p>;
 
     return (
         <div className='flex flex-col gap-1 w-full p-2'>
@@ -348,6 +395,23 @@ const Ecom_add_shop = () => {
                         )
                     ))}
                 </form>
+            </div>
+
+            {/* Select Category */}
+            <h1 className="text-lg font-serif">Select Category</h1>
+            <div className="w-full bg-white p-4 rounded-lg shadow">
+                <select
+                    className="border border-gray-300 rounded p-2 w-full"
+                    value={selectedCategory}
+                    // onChange={handleChangeSelectCategory}
+                    onChange={(e) => setSelectedCategory(e.target.value)}
+                >
+                    {categoryList.map((category, index) => (
+                        <option key={index} value={category.categoryName}>
+                            {category.categoryName}
+                        </option>
+                    ))}
+                </select>
             </div>
 
             {/* Sub Categories */}

@@ -43,7 +43,7 @@ const Add_service_man = () => {
 
     const [selectedTime, setSelectedTime] = useState(timeSlot[0]);
 
-    const [selectedCategory, setSelectedCategory] = useState("Electrician");
+    const [selectedCategory, setSelectedCategory] = useState("");
 
     const [categoryList, setCategoryList] = useState([]);
     const [loading, setLoading] = useState(true);
