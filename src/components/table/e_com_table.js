@@ -157,7 +157,8 @@ const ScrollableTable = () => {
                   state={{
                     shopId: item.shop_id,
                     ownerEmail: item.ownerEmail,
-                    gstNo: item.gstNo
+                    gstNo: item.gstNo,
+                    category: item.category
                   }}>
                   <div className="h-8 w-8 bg-black rounded-sm text-white text-sm text-center p-1">
                     <EditIcon />

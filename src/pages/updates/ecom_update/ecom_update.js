@@ -13,6 +13,7 @@ const EcomUpdate = () => {
     const location = useLocation();
     const shopId = location.state?.shopId || "";
     const gstNo = location.state?.gstNo || "";
+    const category = location.state?.Category || "";
 
     const notify = (message) => toast.success(message);
     const notifyError = (message) => toast.error(message);
@@ -40,7 +41,10 @@ const EcomUpdate = () => {
     const [formData, setFormData] = useState(initialformData);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    
+
+    const [selectedCategory, setSelectedCategory] = useState("");
+    const [categoryList, setCategoryList] = useState([]);
+
     var aadharImage = '';
     var shopBannerimage = '';
 
@@ -48,6 +52,32 @@ const EcomUpdate = () => {
     const [subCategories, setSubCategories] = useState([]);
     const [title, setTitle] = useState("");
     const [image, setImage] = useState(null);
+
+
+    /// Fetch Category List
+    const fetchCategoryList = async () => {
+        try {
+            const response = await axios.get("https://r2fjv162gj.execute-api.ap-south-1.amazonaws.com/prod/ecom_all_categories_get");
+
+            if (response.data && response.data['body-json'].statusCode === 200) {
+                const list = response.data['body-json'].body.categories;
+                list.splice(0, 0, { categoryName: category });
+                const result = list.filter((item, index) => item !== category || index === 0);
+                setCategoryList(result);
+
+            } else if (response.data['body-json']['statusCode'] === 400) {
+                notifyError(response.data['body-json'].body.message);
+            } else {
+                console.error("Unexpected response format:", response.data['body-json']);
+                throw new Error("Failed to fetch data");
+            }
+        } catch (err) {
+            console.error("Fetch Error:", err);
+            // setError(err.message);
+        } finally {
+            // setLoading(false);
+        }
+    };
 
     const fetchShopDetails = async () => {
         try {
@@ -65,7 +95,7 @@ const EcomUpdate = () => {
                 const data = response.data['body-json'].body.info;
 
                 initialformData.shopDetails.ownerName = data.ownerName;
-                initialformData.shopDetails.category = data.category;
+                // initialformData.shopDetails.category = data.category;
                 initialformData.shopDetails.ownerPhone = data.ownerPhone;
                 initialformData.shopDetails.ownerEmail = data.ownerEmail;
                 initialformData.shopDetails.shopName = data.shopName;
@@ -74,8 +104,12 @@ const EcomUpdate = () => {
                 aadharImage = data.aadhar;
                 shopBannerimage = data.shopBannerimage;
 
-                if(subCategories.length === 0 && data.subCategory.length !== 0){
+                if (subCategories.length === 0 && data.subCategory.length !== 0) {
                     setSubCategories(data.subCategory);
+                }
+
+                if (selectedCategory === '') {
+                    setSelectedCategory(data.category);
                 }
 
             } else if (response.data['body-json']['statusCode'] === 400) {
@@ -95,7 +129,11 @@ const EcomUpdate = () => {
 
     useEffect(() => {
 
-        if(initialformData.shopDetails.ownerName === '') {
+        if (categoryList.length === 0) {
+            fetchCategoryList();
+        }
+
+        if (initialformData.shopDetails.ownerName === '') {
             fetchShopDetails();
         }
 
@@ -137,7 +175,7 @@ const EcomUpdate = () => {
 
                 setTitle('');
                 setImage(null);
-                
+
             } else if (response.data['body-json']['statusCode'] === 400) {
                 notifyError(response.data['body-json'].body.message);
             } else {
@@ -225,7 +263,7 @@ const EcomUpdate = () => {
 
 
         const adminEmail = localStorage.getItem('adminEmail');
-        if(formData.documents.aadhar !== '' || formData.documents.shopBannerimage !== ''){
+        if (formData.documents.aadhar !== '' || formData.documents.shopBannerimage !== '') {
             await uploadProcess();
         }
 
@@ -235,7 +273,7 @@ const EcomUpdate = () => {
             shopId: shopId,
             shopDetails: {
                 ownerName: formData.shopDetails.ownerName,
-                Category: formData.shopDetails.category,
+                Category: selectedCategory,
                 ownerEmail: formData.shopDetails.ownerEmail,
                 ownerPhone: formData.shopDetails.ownerPhone,
                 shopBannerimage: formData.documents.shopBannerimage === '' ? shopBannerimage : formData.documents.shopBannerimage,
@@ -245,7 +283,7 @@ const EcomUpdate = () => {
                 address: formData.shopDetails.address,
                 shopStatus: formData.shopDetails.shopStatus
             },
-            aadhar: formData.documents.aadhar === ''? aadharImage : formData.documents.aadhar
+            aadhar: formData.documents.aadhar === '' ? aadharImage : formData.documents.aadhar
         };
 
         console.log('final data', data);
@@ -358,7 +396,7 @@ const EcomUpdate = () => {
         const body = await getPresignedUrls();
 
 
-        if (body.signedUrls.documents.length > 0 ) {
+        if (body.signedUrls.documents.length > 0) {
             await uploadImages(body.signedUrls.documents, [formData.documents.aadhar, formData.documents.shopBannerimage]);
 
             formData.documents.aadhar = body.uploadedFiles.documents[0].key;
@@ -389,7 +427,7 @@ const EcomUpdate = () => {
             );
 
             const obj = JSON.parse(response.data['body-json'].body);
-            
+
             console.log('presinged', obj);
 
             const body = obj.uploadDetails[0];
@@ -461,7 +499,6 @@ const EcomUpdate = () => {
         { name: 'ownerPhone', placeholder: 'Phone' },
         { name: 'ownerEmail', placeholder: 'Owner Email' },
         { name: 'shopName', placeholder: 'Shop Name' },
-        { name: 'category', placeholder: 'Category' },
         { name: 'address', placeholder: 'Address', type: 'textarea' },
     ];
 
@@ -512,6 +549,22 @@ const EcomUpdate = () => {
                             )
                         ))}
                     </form>
+                </div>
+
+                {/* Select Category */}
+                <h1 className="text-lg font-serif">Select Category</h1>
+                <div className="w-full bg-white p-4 rounded-lg shadow">
+                    <select
+                        className="border border-gray-300 rounded p-2 w-full"
+                        value={selectedCategory}
+                        onChange={(e) => setSelectedCategory(e.target.value)}
+                    >
+                        {categoryList.map((category, index) => (
+                            <option key={index} value={category.categoryName}>
+                                {category.categoryName}
+                            </option>
+                        ))}
+                    </select>
                 </div>
 
                 {/* Sub Categories */}

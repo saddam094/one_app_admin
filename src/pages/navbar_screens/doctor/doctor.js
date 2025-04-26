@@ -42,7 +42,7 @@ const Doctor = () => {
 
 
   useEffect(() => {
-    if(doctorCount.length === 0){
+    if (doctorCount.length === 0) {
       fetchData();
     }
   });
@@ -69,6 +69,16 @@ const Doctor = () => {
               className="bg-transparent text-gray-600 placeholder-gray-400 focus:outline-none w-full"
             />
           </div>
+
+          <div className='w-6'></div>
+
+          {/* Add Member */}
+          <Link to={"/manage_doctor_category"}>
+            <button className="h-10 w-50 text-white bg-black text-md rounded-md px-6 py-2 font-medium">
+              Manage Category
+            </button>
+          </Link>
+
 
           <div className='w-6'></div>
 

@@ -75,6 +75,15 @@ const Services = () => {
           <div className='w-6'></div>
 
           {/* Add Member */}
+          <Link to={"/manage_service_category"}>
+            <button className="h-10 w-50 text-white bg-black text-md rounded-md px-6 py-2 font-medium">
+              Manage Category
+            </button>
+          </Link>
+
+          <div className='w-6'></div>
+
+          {/* Add Member */}
           <Link to={"/add_service_man"}>
             <button className="h-10 w-50 text-white bg-black text-md rounded-md px-6 py-2 font-medium">
               Add Service Man

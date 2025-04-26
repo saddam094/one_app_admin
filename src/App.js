@@ -24,6 +24,10 @@ import EcomAddProduct from "./pages/add/ecom_add_product/ecom_add_product.js";
 import AddServiceMan from "./pages/add/add_service_man/add_service_man.js";
 import AddDoctor from "./pages/add/add_doctor/add_doctor.js";
 
+/// manage Category
+import ManageServicesCategory from "./pages/manage_category/services_category/manage_services_category.js";
+import ManageDoctorsCategory from "./pages/manage_category/doctors_category/manage_doctors_category.js";
+
 
 
 function NavLink({ to, children }) {
@@ -135,6 +139,8 @@ function App() {
             <Route path="/doctor_update" element={<DoctorUpdate />} />
             <Route path="/add_doctor" element={<AddDoctor />} />
             <Route path="/p5" element={<P5 />} />
+            <Route path="/manage_service_category" element={<ManageServicesCategory />} />
+            <Route path="/manage_doctor_category" element={<ManageDoctorsCategory />} />
           </>
         ) : (
           <Route path="*" element={<Navigate to="/admin_login" replace />} />

@@ -102,7 +102,7 @@ const Doctor_update = () => {
             if (response.data && response.data['body-json'].statusCode === 200) {
                 const list = response.data['body-json'].body;
                 list.splice(0, 0, {title: category});
-                const result = list.filter((item, index) => item !== 'c' || index === 0);
+                const result = list.filter((item, index) => item !== category || index === 0);
                 setCategoryList(result);
 
             } else if (response.data['body-json']['statusCode'] === 400) {
