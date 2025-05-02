@@ -26,6 +26,9 @@ const Manage_doctors_category = () => {
     const [updateOldImageUrl, setUpdateOldImageUrl] = useState("");
     const [UpdateImage, setUpdateImage] = useState(null);
 
+    const [deleteCategoryList, setDeleteCategoryList] = useState([]);
+    const [selectedDeleteCategory, setSelectedDeleteCategory] = useState("");
+
     const handleCategory = (searchTitle) => {
         const matchedItem = updateCategoryList.find(
             (item) => item.title.toLowerCase() === searchTitle.toLowerCase()
@@ -276,6 +279,71 @@ const Manage_doctors_category = () => {
     };
 
 
+    /// Get All Category To Delete
+    const fetchCategoryListToDelete = async () => {
+        try {
+            const response = await axios.get("https://r2fjv162gj.execute-api.ap-south-1.amazonaws.com/prod/doctor_categories_count");
+
+            console.log('category list ', response);
+
+            if (response.data && response.data['body-json'].statusCode === 200) {
+
+                setDeleteCategoryList(response.data['body-json'].body);
+                setSelectedDeleteCategory(response.data['body-json'].body[0].title);
+                setIsAddCategory(false);
+                setIsUpdateCategory(false);
+                setIsDeleteCategory(true);
+
+            } else if (response.data['body-json']['statusCode'] === 400) {
+                notifyError(response.data['body-json'].body.message);
+            } else {
+                console.error("Unexpected response format:", response.data['body-json']);
+                throw new Error("Failed to fetch data");
+            }
+        } catch (err) {
+            console.error("Fetch Error:", err);
+            // setError(err.message);
+        } finally {
+            // setLoading(false);
+        }
+    };
+
+
+
+    /// Delete Doctor Category
+    const deleteDoctorsCategory = async () => {
+
+        if (selectedDeleteCategory === "") {
+            notifyError("Plaese Select Category To Delete");
+            return;
+        }
+
+        var data = {
+            categoryName: selectedDeleteCategory
+        };
+
+        console.log('Delete Doctor Category', data);
+
+        try {
+            const response = await axios.post('https://r2fjv162gj.execute-api.ap-south-1.amazonaws.com/prod/delete_doctor_category', data);
+
+            if (response.data['body-json']['statusCode'] === 200) {
+                notify("Category Deleted Successfully");
+                fetchCategoryListToDelete();
+            } else if (response.data['body-json']['statusCode'] === 400) {
+                notifyError(response.data['body-json'].body.message);
+            } else {
+                console.log(`API Response: ${response.data['body-json']['statusCode']}`);
+                console.log(response.data['body-json']['body']);
+            }
+
+        } catch (error) {
+            console.error('Error submitting data:', error.response ? error.response.data : error.message);
+        }
+    };
+
+
+
 
     return (
         <div className="flex flex-col gap-4 w-full mx-auto p-4">
@@ -320,9 +388,10 @@ const Manage_doctors_category = () => {
                         className={`px-4 py-1 rounded-lg font-medium ${isDeleteCategory ? "bg-blue-600 text-white" : "bg-gray-200"
                             }`}
                         onClick={() => {
-                            setIsAddCategory(false);
-                            setIsUpdateCategory(false);
-                            setIsDeleteCategory(true);
+                            fetchCategoryListToDelete();
+                            // setIsAddCategory(false);
+                            // setIsUpdateCategory(false);
+                            // setIsDeleteCategory(true);
                         }}
                     >
                         Delete
@@ -382,6 +451,7 @@ const Manage_doctors_category = () => {
                     <h1 className="text-lg font-serif">Select Category</h1>
                     <div className="w-full bg-white p-4 rounded-lg shadow">
                         <select
+                            size={5}
                             className="border border-gray-300 rounded p-2 w-full"
                             value={selectedUpdateCategory.title}
                             onChange={(e) => handleCategory(e.target.value)}
@@ -439,7 +509,29 @@ const Manage_doctors_category = () => {
             {/* Delete Category Placeholder */}
             {isDeleteCategory && (
                 <div className="bg-white rounded-xl shadow-md px-4 py-4">
-                    <p className="text-gray-600">Delete category UI will go here.</p>
+                    {/* Select Category */}
+                    <h1 className="text-lg font-serif">Select Category</h1>
+                    <div className="w-full bg-white p-4 rounded-lg shadow">
+                        <select
+                        size={5}
+                            className="border border-gray-300 rounded p-2 w-full"
+                            value={selectedDeleteCategory}
+                            onChange={(e) => setSelectedDeleteCategory(e.target.value)}
+                        >
+                            {deleteCategoryList.map((category, index) => (
+                                <option key={index} value={category.title}>
+                                    {category.title}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+
+                    <button
+                        onClick={deleteDoctorsCategory}
+                        className="w-full bg-blue-600 text-white font-medium py-2 rounded-lg hover:bg-blue-700 transition"
+                    >
+                        Delete Category
+                    </button>
                 </div>
             )}
         </div>
