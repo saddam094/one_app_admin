@@ -88,7 +88,7 @@ const EcomUpdate = () => {
 
             const response = await axios.post("https://r2fjv162gj.execute-api.ap-south-1.amazonaws.com/prod/ecom_shop_details_using_shopid_category", data);
 
-            console.log("API Response Product Details :", response);
+            console.log("API Response Shop Details :", response);
 
             if (response.data && response.data['body-json'].statusCode === 200) {
 
@@ -260,10 +260,12 @@ const EcomUpdate = () => {
     // Handle Submit
     const handleUpdate = async () => {
 
-
-
         const adminEmail = localStorage.getItem('adminEmail');
+
+
+
         if (formData.documents.aadhar !== '' || formData.documents.shopBannerimage !== '') {
+
             await uploadProcess();
         }
 
@@ -349,7 +351,7 @@ const EcomUpdate = () => {
 
     const uploadImages = async (signedUrls, fileList) => {
         try {
-            const files = Object.values(fileList).filter(file => file); // Get only non-null files
+            const files = Object.values(fileList).filter(file => file);
 
             const uploadPromises = files.map(async (file, index) => {
                 if (!signedUrls[index]) {
@@ -399,14 +401,26 @@ const EcomUpdate = () => {
         if (body.signedUrls.documents.length > 0) {
             await uploadImages(body.signedUrls.documents, [formData.documents.aadhar, formData.documents.shopBannerimage]);
 
-            formData.documents.aadhar = body.uploadedFiles.documents[0].key;
-            formData.documents.shopBannerimage = body.uploadedFiles.documents[1].key;
+            /// Aadhar Image
+            formData.documents.aadhar = isValidKey(body.uploadedFiles.documents[0].key)
+                ? body.uploadedFiles.documents[0].key
+                : aadharImage;
+
+            /// Shop Banner Image
+            formData.documents.shopBannerimage = isValidKey(body.uploadedFiles.documents[1].key)
+                ? body.uploadedFiles.documents[1].key
+                : shopBannerimage;
+                
             console.log('documents completed');
 
         } else {
             console.error("❌ No signed URLs received. Aborting upload.");
         }
     };
+
+    function isValidKey(key) {
+        return !(key.endsWith("null") || key.includes("null"));
+    }
 
 
 

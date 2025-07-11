@@ -177,13 +177,13 @@ const Doctor_update = () => {
 
     });
 
-
+    
     // Handle Submit
     const handleUpdate = async () => {
 
         const adminEmail = localStorage.getItem('adminEmail');
 
-        if(formData.aadhar !== '' && formData.bannerImage !== 0 && formData.doctorImage !== ''){
+        if(formData.aadhar !== '' || formData.bannerImage !== 0 || formData.doctorImage !== ''){
             await uploadProcess();
         }
 
@@ -207,6 +207,8 @@ const Doctor_update = () => {
             status: true,
             timeList: selectedTime
         };
+
+        console.log('Final Data', data);
 
         try {
             const response = await axios.post('https://r2fjv162gj.execute-api.ap-south-1.amazonaws.com/prod/edit_doctor_details', data);
@@ -315,16 +317,18 @@ const Doctor_update = () => {
             await uploadImages(body.signedUrls.bannerImage, [formData.bannerImage]);
             await uploadImages(body.signedUrls.aadhar, [formData.aadhar]);
 
-            formData.aadhar = body.uploadedFiles.aadhar[0].key;
-            formData.doctorImage = body.uploadedFiles.doctorImage[0].key;
-            formData.bannerImage = body.uploadedFiles.bannerImage[0].key;
+            formData.aadhar = isValidKey(body.uploadedFiles.aadhar[0].key) ? body.uploadedFiles.aadhar[0].key : doctorAadharImage;
+            formData.doctorImage = isValidKey(body.uploadedFiles.doctorImage[0].key) ? body.uploadedFiles.doctorImage[0].key : doctorProfileImage;
+            formData.bannerImage = isValidKey(body.uploadedFiles.bannerImage[0].key) ? body.uploadedFiles.bannerImage[0].key : doctorBannerImage;
 
         } else {
             console.error("❌ No signed URLs received. Aborting upload.");
         }
     };
 
-
+    function isValidKey(key) {
+        return !(key.endsWith("null") || key.includes("null"));
+    }
 
 
     // Define dynamic field configurations

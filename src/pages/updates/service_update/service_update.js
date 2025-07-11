@@ -175,7 +175,9 @@ const Service_man_update = () => {
 
         const adminEmail = localStorage.getItem('adminEmail');
 
-        if(formData.servicemanImage !== '' && formData.bannerImage !== '' && formData.aadhar !== ''){
+        if(formData.servicemanImage !== '' || formData.bannerImage !== '' || formData.aadhar !== ''){
+
+            console.log('Hallo-1');
             await uploadProcess();
         }
 
@@ -304,16 +306,24 @@ const Service_man_update = () => {
         if (body.signedUrls.documents.length > 0 ) {
             await uploadImages(body.signedUrls.documents, [formData.aadhar, formData.servicemanImage, formData.bannerImage]);
 
-            formData.aadhar = body.uploadedFiles.documents[0].key;
-            formData.servicemanImage = body.uploadedFiles.documents[1].key;
-            formData.bannerImage = body.uploadedFiles.documents[2].key;
+        
+            /// Aadhar Image 
+            formData.aadhar = isValidKey(body.uploadedFiles.documents[0].key) ? body.uploadedFiles.documents[0].key : serviceManaadharImage;
+            
+            /// Profile Image
+            formData.servicemanImage = isValidKey(body.uploadedFiles.documents[1].key) ? body.uploadedFiles.documents[1].key : servicemanProfileImage;
+            
+            /// Shop Banner Image
+            formData.bannerImage = isValidKey(body.uploadedFiles.documents[2].key) ? body.uploadedFiles.documents[2].key : serviceManbannerImage;
 
         } else {
             console.error("❌ No signed URLs received. Aborting upload.");
         }
     };
 
-
+    function isValidKey(key) {
+        return !(key.endsWith("null") || key.includes("null"));
+    }
 
 
     // Define dynamic field configurations

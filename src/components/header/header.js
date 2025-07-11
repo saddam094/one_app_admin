@@ -4,7 +4,7 @@ import { toast } from "react-toastify";
 import axios from 'axios';
 import SearchIcon from '@mui/icons-material/Search';
 import NotificationsNoneIcon from '@mui/icons-material/NotificationsNone';
-import logo from '../../assets/images/p5 logo.png';
+import logo from '../../assets/images/logo1.png';
 import person from '../../assets/images/person male.png';
 
 function Header({ setIsAuthenticated }) {
@@ -59,7 +59,7 @@ function Header({ setIsAuthenticated }) {
     <div className="flex h-20 w-full bg-slate-100 border-slate-300 border-b-2 items-center justify-between px-10">
       {/* Logo */}
       <Link to={'/'}>
-        <img src={logo} alt="logo" className="w-14 h-14 rounded-sm" />
+        <img src={logo} alt="logo" className="w-30 h-14 rounded-sm" />
       </Link>
 
       {/* Search Bar */}
