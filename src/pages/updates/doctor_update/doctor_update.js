@@ -101,7 +101,7 @@ const Doctor_update = () => {
 
             if (response.data && response.data['body-json'].statusCode === 200) {
                 const list = response.data['body-json'].body;
-                list.splice(0, 0, {title: category});
+                list.splice(0, 0, { title: category });
                 const result = list.filter((item, index) => item !== category || index === 0);
                 setCategoryList(result);
 
@@ -147,7 +147,7 @@ const Doctor_update = () => {
                 doctorBannerImage = data.bannerImage;
                 doctorProfileImage = data.image;
 
-                if(selectedCategory === ''){
+                if (selectedCategory === '') {
                     setSelectedCategory(data.category);
                 }
 
@@ -171,19 +171,19 @@ const Doctor_update = () => {
             fetchCategoryList();
         }
 
-        if(initialformData.doctorInfo.name === ''){
+        if (initialformData.doctorInfo.name === '') {
             fetchDoctorDetails();
         }
 
     });
 
-    
+
     // Handle Submit
     const handleUpdate = async () => {
 
         const adminEmail = localStorage.getItem('adminEmail');
 
-        if(formData.aadhar !== '' || formData.bannerImage !== 0 || formData.doctorImage !== ''){
+        if (formData.aadhar !== '' || formData.bannerImage !== 0 || formData.doctorImage !== '') {
             await uploadProcess();
         }
 
@@ -311,15 +311,32 @@ const Doctor_update = () => {
     const uploadProcess = async () => {
         const body = await getPresignedUrls();
 
-        if (body.signedUrls.doctorImage.length > 0 && body.signedUrls.bannerImage.length > 0 && body.signedUrls.aadhar.length > 0) {
+        if (body.signedUrls.doctorImage.length > 0 || body.signedUrls.bannerImage.length > 0 || body.signedUrls.aadhar.length > 0) {
 
-            await uploadImages(body.signedUrls.doctorImage, [formData.doctorImage]);
-            await uploadImages(body.signedUrls.bannerImage, [formData.bannerImage]);
-            await uploadImages(body.signedUrls.aadhar, [formData.aadhar]);
+            if (body.signedUrls.doctorImage.length > 0) {
+                await uploadImages(body.signedUrls.doctorImage, [formData.doctorImage]);
+            }
 
-            formData.aadhar = isValidKey(body.uploadedFiles.aadhar[0].key) ? body.uploadedFiles.aadhar[0].key : doctorAadharImage;
-            formData.doctorImage = isValidKey(body.uploadedFiles.doctorImage[0].key) ? body.uploadedFiles.doctorImage[0].key : doctorProfileImage;
-            formData.bannerImage = isValidKey(body.uploadedFiles.bannerImage[0].key) ? body.uploadedFiles.bannerImage[0].key : doctorBannerImage;
+            if (body.signedUrls.bannerImage.length > 0) {
+                await uploadImages(body.signedUrls.bannerImage, [formData.bannerImage]);
+            }
+
+            if (body.signedUrls.aadhar.length > 0) {
+                await uploadImages(body.signedUrls.aadhar, [formData.aadhar]);
+            }
+
+
+            formData.aadhar = body.uploadedFiles.aadhar.length > 0 && isValidKey(body.uploadedFiles.aadhar[0].key)
+                ? body.uploadedFiles.aadhar[0].key
+                : doctorAadharImage;
+
+            formData.doctorImage = body.uploadedFiles.doctorImage.length > 0 && isValidKey(body.uploadedFiles.doctorImage[0].key)
+                ? body.uploadedFiles.doctorImage[0].key
+                : doctorProfileImage;
+
+            formData.bannerImage = body.uploadedFiles.bannerImage.length > 0 && isValidKey(body.uploadedFiles.bannerImage[0].key)
+                ? body.uploadedFiles.bannerImage[0].key
+                : doctorBannerImage;
 
         } else {
             console.error("❌ No signed URLs received. Aborting upload.");
