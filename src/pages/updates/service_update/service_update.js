@@ -236,6 +236,8 @@ const Service_man_update = () => {
             ]
         };
 
+        //hello
+
         try {
             const response = await axios.post('https://r2fjv162gj.execute-api.ap-south-1.amazonaws.com/prod/service_image_presigned', data);
 
