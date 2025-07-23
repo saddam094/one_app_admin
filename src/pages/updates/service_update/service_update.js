@@ -192,7 +192,7 @@ const Service_man_update = () => {
             },
             category: selectedCategory,
             aadhar: formData.aadhar === '' ? serviceManaadharImage : formData.aadhar,
-            serviceManImage: formData.servicemanImage === '' ? servicemanProfileImage : formData.servicemanImage,
+            servicemanImage: formData.servicemanImage === '' ? servicemanProfileImage : formData.servicemanImage,
             bannerImage: formData.bannerImage === '' ? serviceManbannerImage : formData.bannerImage,
             status: true,
             timeList: selectedTime
