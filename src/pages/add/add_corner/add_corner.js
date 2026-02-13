@@ -7,7 +7,7 @@ import { toast } from "react-toastify";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { FaUpload } from "react-icons/fa";
 
-const Add_StudentCorner = () => {
+const AddStudentCorner = () => {
   const notify = (msg) => toast.success(msg);
   const notifyError = (msg) => toast.error(msg);
   
@@ -297,5 +297,5 @@ const Add_StudentCorner = () => {
   );
 };
 
-export default Add_StudentCorner;
+export default AddStudentCorner;
 
