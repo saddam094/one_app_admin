@@ -11,6 +11,7 @@ import Cab from "./pages/navbar_screens/cab/cab.js";
 import Leisure from "./pages/navbar_screens/leisure/leisure.js";
 import RealState from "./pages/navbar_screens/real_state/real_state.js";
 import AdminLogin from "./admin_login.js";
+import StudentCorner from "./pages/navbar_screens/student_corner/StudentCorner.js";
 
 /// update page
 import EcomUpdate from "./pages/updates/ecom_update/ecom_update.js";
@@ -23,10 +24,15 @@ import EcomAddMember from "./pages/add/ecom_add_shop/ecom_add_shop.js";
 import EcomAddProduct from "./pages/add/ecom_add_product/ecom_add_product.js";
 import AddServiceMan from "./pages/add/add_service_man/add_service_man.js";
 import AddDoctor from "./pages/add/add_doctor/add_doctor.js";
+import AddCorner from "./pages/add/add_corner/add_corner.js";
 
 /// manage Category
 import ManageServicesCategory from "./pages/manage_category/services_category/manage_services_category.js";
 import ManageDoctorsCategory from "./pages/manage_category/doctors_category/manage_doctors_category.js";
+import ManageStudentCornerCategory from "./pages/manage_category/StudentCorner_category/manage_corner_category";
+import StudentCorner_Update from "./pages/updates/student_corner_update/student_corner_update.js";
+
+
 
 
 
@@ -106,6 +112,7 @@ function App() {
               <NavLink to="/services">Services</NavLink>
               <NavLink to="/doctor">Doctor</NavLink>
               <NavLink to="/p5">P5</NavLink>
+              <NavLink to="/StudentCorner">Student Corner</NavLink>
               {/* <NavLink >Travel</NavLink>
               <NavLink >Leisure</NavLink>
               <NavLink >Real State</NavLink> */}
@@ -127,6 +134,7 @@ function App() {
             <Route path="/e-products" element={<Eproducts />} />
             <Route path="/services" element={<Services />} />
             <Route path="/doctor" element={<Doctor />} />
+            <Route path="/StudentCorner" element={<StudentCorner/>}/>
             <Route path="/cab" element={<Cab />} />
             <Route path="/leisure" element={<Leisure />} />
             <Route path="/real-state" element={<RealState />} />
@@ -141,6 +149,14 @@ function App() {
             <Route path="/p5" element={<P5 />} />
             <Route path="/manage_service_category" element={<ManageServicesCategory />} />
             <Route path="/manage_doctor_category" element={<ManageDoctorsCategory />} />
+            <Route path="/StudentCorner" element={<StudentCorner />} />
+            <Route path="/manage_studentCorner_category" element={<ManageStudentCornerCategory />} />
+            <Route path="/add_corner" element={<AddCorner />} />
+           <Route path="/student_corner_update/:vendorId" element={<StudentCorner_Update />} />
+
+
+      
+
           </>
         ) : (
           <Route path="*" element={<Navigate to="/admin_login" replace />} />
