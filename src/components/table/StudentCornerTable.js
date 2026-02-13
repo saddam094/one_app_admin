@@ -41,7 +41,7 @@ const StudentCornerTable = () => {
         throw new Error("Unexpected API response");
       }
     } catch (error) {
-      console.error("Fetch Error:", error);
+      console.error("Fetch Error for console window:", error);
       setError(error.message);
     } finally {
       setLoading(false);
