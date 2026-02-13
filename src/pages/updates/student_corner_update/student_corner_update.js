@@ -6,7 +6,7 @@ import { toast } from "react-toastify";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { FaUpload } from "react-icons/fa";
 
-const StudentCorner_Update = () => {
+const StudentCornerUpdate = () => {
   const { vendorId } = useParams();
 
   const notify = (msg) => toast.success(msg);
@@ -314,4 +314,4 @@ const StudentCorner_Update = () => {
   );
 };
 
-export default StudentCorner_Update;
+export default StudentCornerUpdate;
