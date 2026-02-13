@@ -9,7 +9,7 @@ import { Link } from 'react-router-dom'
 
 
 const StudentCorner = () => {
-  const notifyError = (message) =>toast.error(message);
+  // const notifyError = (message) =>toast.error(message);
   const [search, setSearch] = useState('');
   const [studentCategoryCount, setStudentCategoryCount] = useState([]);
  const[loading, setLoading] = useState(true);
