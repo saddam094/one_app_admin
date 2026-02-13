@@ -30,7 +30,7 @@ import AddCorner from "./pages/add/add_corner/add_corner.js";
 import ManageServicesCategory from "./pages/manage_category/services_category/manage_services_category.js";
 import ManageDoctorsCategory from "./pages/manage_category/doctors_category/manage_doctors_category.js";
 import ManageStudentCornerCategory from "./pages/manage_category/StudentCorner_category/manage_corner_category";
-import StudentCorner_Update from "./pages/updates/student_corner_update/student_corner_update.js";
+import StudentCornerUpdate from "./pages/updates/student_corner_update/student_corner_update.js";
 
 
 
@@ -152,7 +152,7 @@ function App() {
             <Route path="/StudentCorner" element={<StudentCorner />} />
             <Route path="/manage_studentCorner_category" element={<ManageStudentCornerCategory />} />
             <Route path="/add_corner" element={<AddCorner />} />
-           <Route path="/student_corner_update/:vendorId" element={<StudentCorner_Update />} />
+           <Route path="/student_corner_update/:vendorId" element={<StudentCornerUpdate />} />
 
 
       
