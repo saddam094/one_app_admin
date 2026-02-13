@@ -49,8 +49,10 @@ const StudentCornerTable = () => {
   };
 
   useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+    if(vendorTableData.length === 0){
+      fetchData();
+    }
+  }, []);
 
   /* ================= DELETE VENDOR ================= */
   const deleteVendor = async (vendorId) => {
