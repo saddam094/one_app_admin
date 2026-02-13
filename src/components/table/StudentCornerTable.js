@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect,useCallback } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
 import EditIcon from "@mui/icons-material/Edit";
@@ -26,27 +26,49 @@ const StudentCornerTable = () => {
   const notifyError = (msg) => toast.error(msg);
 
   /* ================= FETCH DATA ================= */
-  const fetchData = async () => {
-    setLoading(true);
-    try {
-      const response = await axios.get(
-        "https://r2fjv162gj.execute-api.ap-south-1.amazonaws.com/prod/get_student_corner_for_admin"
-      );
+  // const fetchData = useCallback(async () => {
+  //   setLoading(true);
+  //   try {
+  //     const response = await axios.get(
+  //       "https://r2fjv162gj.execute-api.ap-south-1.amazonaws.com/prod/get_student_corner_for_admin"
+  //     );
 
-      if (response.data && response.data.statusCode === 200) {
-        setVendorTableData(response.data.data);
-      } else if (response.data.statusCode === 400) {
-        notifyError(response.data.message);
-      } else {
-        throw new Error("Unexpected API response");
-      }
-    } catch (error) {
-      console.error("Fetch Error for console window:", error);
-      setError(error.message);
-    } finally {
-      setLoading(false);
+  //     if (response.data && response.data.statusCode === 200) {
+  //       setVendorTableData(response.data.data);
+  //     } else if (response.data.statusCode === 400) {
+  //       notifyError(response.data.message);
+  //     } else {
+  //       throw new Error("Unexpected API response");
+  //     }
+  //   } catch (error) {
+  //     console.error("Fetch Error for console window:", error);
+  //     setError(error.message);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // });
+
+  const fetchData = useCallback(async () => {
+  setLoading(true);
+  try {
+    const response = await axios.get(
+      "https://r2fjv162gj.execute-api.ap-south-1.amazonaws.com/prod/get_student_corner_for_admin"
+    );
+
+    if (response.data && response.data.statusCode === 200) {
+      setVendorTableData(response.data.data);
+    } else if (response.data.statusCode === 400) {
+      notifyError(response.data.message);
+    } else {
+      throw new Error("Unexpected API response");
     }
-  };
+  } catch (error) {
+    console.error("Fetch Error for console window:", error);
+    setError(error.message);
+  } finally {
+    setLoading(false);
+  }
+}, []);   // 👈 important
 
   useEffect(() => {
     fetchData();
